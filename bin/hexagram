@@ -1,0 +1,139 @@
+#!/usr/bin/env php
+<?php
+
+require_once dirname(__DIR__) . '/lib/Yijing.php';
+
+$text = include dirname(__DIR__) . '/books/wilhelm.php';
+
+function castCoin() 
+{
+	$coins = [
+		random_int(0,63) % 2,
+		random_int(0,63) % 2,
+		random_int(0,63) % 2,
+	];
+	return array_reduce($coins, function($carry, $item) {
+		return $carry + ($item ? 3 : 2);
+	});
+}
+
+function linesToBinary($lines)
+{
+	$bin = '';
+	foreach ($lines as $line) {
+		switch ($line) {
+			case 6:
+			case 8:
+				$bin .= '0';
+				break;
+			case 7:
+			case 9:
+				$bin .= '1';
+				break;
+		}
+	}
+	return base_convert(strrev($bin), 2, 10);
+}
+
+function formatQuickLine($val)
+{
+	switch ($val) {
+		case 6:
+		case 8:
+			return '¦';
+		case 7:
+		case 9:
+			return '|';
+	}
+}
+
+function formatLine($val)
+{
+	switch ($val) {
+		case 6:
+			return '————  🗙  ————';
+		case 7:
+			return '—————————————';
+		case 8:
+			return '————     ————';
+		case 9:
+			return '——————◯——————';
+	}
+}
+
+function formatLines($lines)
+{
+	$output = '';
+
+	$number = Yijing::getNumber(linesToBinary($lines));
+	$name = Yijing::getName($number);
+
+	$output .= '  ' .$name . "\n\n";
+
+	foreach ($lines as $index => $line) {
+		$output .= '    ' . formatLine($line) . ' ' . ($index + 1) . "\n";
+	}
+	
+	return $output;
+}
+
+function slug($question)
+{
+	return preg_replace(
+		'/-{2,}/g', '-', 
+		preg_replace('/[^a-zA-Z0-9]/', '-', $question)
+	);
+}
+
+// Coins
+if (count($argv) === 1) {
+	$lines = [
+		castCoin(), castCoin(), castCoin(), castCoin(), castCoin(), castCoin(),
+	];
+} elseif (count($argv) === 2) {
+	$lines = array_map('intval', str_split($argv[1], 1));
+	if (count($lines) !== 6) {
+		echo "Error: must use 6 coins\n";
+		exit(2);
+	}
+} else {
+	$lines = array_map('intval', str_split(trim(fgets(STDIN))));
+}
+
+
+// $filePath = __DIR__ . '/casts/' . date('Y-m-d') . '-' . substr(slug($question), 0, 20) . '.txt';
+$file = fopen('php://stdout', 'w');
+$p = "\n\n\n";
+
+// whitespace
+fwrite($file, $p);
+
+// Show hexagram
+fwrite($file, formatLines($lines) . $p);
+
+// Link
+$number = Yijing::getNumber(linesToBinary($lines));
+fwrite($file, $text[$number] . $p);
+
+// Changes
+$changesTo = [];
+foreach ($lines as $index => $line) {
+	switch ($line) {
+		case 6:
+			$changesTo[$index] = 7;
+			break;
+		case 9:
+			$changesTo[$index] = 8;
+			break;
+		default:
+			$changesTo[$index] = $line;
+			break;
+	}
+}
+
+if ($changesTo != $lines) {
+	fwrite($file, "Changes to:\n\n");
+	fwrite($file, formatLines($changesTo) . $p);
+	$changeNumber = Yijing::getNumber(linesToBinary($lines));
+	fwrite($file, $text[$changeNumber] . $p);
+}

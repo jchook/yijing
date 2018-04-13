@@ -1,0 +1,27 @@
+#!/usr/bin/env php
+<?php
+
+function castCoins() 
+{
+	$coins = [
+		random_int(0,63) % 2,
+		random_int(0,63) % 2,
+		random_int(0,63) % 2,
+	];
+	return array_reduce($coins, function($carry, $item) {
+		return $carry + ($item ? 3 : 2);
+	});
+}
+
+$args = array_merge(
+	[
+		'n' => 6,
+	],
+	getopt('n:')
+);
+
+$number = (int) $args['n'];
+
+for ($i = 0; $i < $number; $i++) {
+	echo castCoins();
+}
