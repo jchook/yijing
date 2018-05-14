@@ -71,7 +71,7 @@ function formatLines($lines)
 	$output .= '  ' .$name . "\n\n";
 
 	foreach ($lines as $index => $line) {
-		$output .= '    ' . formatLine($line) . ' ' . ($index + 1) . "\n";
+		$output .= '    ' . formatLine($line) . ' ' . (6 - $index) . "\n";
 	}
 	
 	return $output;
@@ -92,12 +92,14 @@ if (count($argv) === 1) {
 	];
 } elseif (count($argv) === 2) {
 	$lines = array_map('intval', str_split($argv[1], 1));
-	if (count($lines) !== 6) {
-		echo "Error: must use 6 coins\n";
-		exit(2);
-	}
 } else {
 	$lines = array_map('intval', str_split(trim(fgets(STDIN))));
+}
+
+// Must use 6
+if (count($lines) !== 6) {
+	echo "Error: must use 6 coins\n";
+	exit(2);
 }
 
 

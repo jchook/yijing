@@ -1,4 +1,5 @@
 #!/bin/bash
 DIR=$(dirname "$(readlink -f "$0")")
-echo "$*"
-"$DIR/coins" | "$DIR/hexagram" | less
+fname="yijing-"`date +%Y-%m-%d-%H.%M.%S`.txt
+echo "$*" | tee "$fname"
+"$DIR/coins" | "$DIR/hexagram" | tee -a "$fname" | less
